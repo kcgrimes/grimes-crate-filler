@@ -1,27 +1,7 @@
 /*
---Author: KC Grimes
-
---Script: Grimes' Crate Filler
---Version: V2.0
-
---Description: Old-fashioned Ammo Crate Refill script for ArmA 3, including modular use of all weapons, attachments, magazines, items, clothing, bags and much more!
-
---Instruction: 
-1. Move/Copy file "G_crate.sqf" from this mission folder or the zip file into your mission folder
-2. In the ArmA 3 editor, place an ammo crate found in the Empty -> Ammo section. 
-3. In the crate's Init field, type the following command:
-nul = [this] execVM "G_crate.sqf";
-
---Tips: 
--Read the extra comments if you are confused about something, or contact me on the forums or via e-mail
--Unfortunately as of the release of this script the crate sorting system in A3 isn't so great. Here's what you need to know.
-All - Displays all items spawned into the crate
-Weapons -  Only weapons, launchers, and all bags (not vests)
-Magazines - Only magazines, throwables, launchables, plantables, and all bags (not vests)
-Items - Only attachments, gadgets, items, kits, hat/helmets, uniforms, vests, and all bags
-This is why I suggest you keep the bag/uniform/vest/hat count low, as it is very cluttery. Sorry!
--Players can only wear uniforms of their faction
--NOTE: Although it is possible to spawn everything into the crate, it is not recommended in Multiplayer due to lag. However, default settings and under will only cause an extra second of loading.
+Author: KC Grimes
+Script: Grimes Crate Filler
+Version: V2.0
 */
 
 if (!isServer) exitWith {};
