@@ -114,7 +114,7 @@ class Mission
 	};
 	class Entities
 	{
-		items=7;
+		items=6;
 		class Item0
 		{
 			dataType="Marker";
@@ -128,39 +128,44 @@ class Mission
 			dataType="Object";
 			class PositionInfo
 			{
-				position[]={1538.9421,6.3924227,5059.3428};
-				angles[]={0,0.30845377,0};
+				position[]={1540.689,6.3924227,5054.584};
+				angles[]={0,0.30845204,0};
 			};
 			side="Empty";
 			flags=4;
 			class Attributes
 			{
+				health=0.22285873;
 				skill=0.60000002;
-				init="nul = [this] execVM ""G_crate_manual101.sqf"";";
-			};
-			id=1;
-			type="B_supplyCrate_F";
-		};
-		class Item2
-		{
-			dataType="Object";
-			class PositionInfo
-			{
-				position[]={1540.6891,6.3924227,5054.5845};
-				angles[]={0,0.30845377,0};
-			};
-			side="Empty";
-			flags=4;
-			class Attributes
-			{
-				skill=0.60000002;
-				init="nul = [this] execVM ""G_crate.sqf"";";
-				name="box";
+				init="null = [this] execVM ""G_crate.sqf"";";
 			};
 			id=2;
 			type="B_supplyCrate_F";
+			class CustomAttributes
+			{
+				class Attribute0
+				{
+					property="ammoBox";
+					expression="[_this,_value] call bis_fnc_initAmmoBox;";
+					class Value
+					{
+						class data
+						{
+							class type
+							{
+								type[]=
+								{
+									"STRING"
+								};
+							};
+							value="[[[[""launch_NLAW_F"",""arifle_MX_F"",""arifle_MX_SW_F""],[1,2,1]],[[""30Rnd_65x39_caseless_mag"",""16Rnd_9x21_Mag"",""30Rnd_45ACP_Mag_SMG_01"",""20Rnd_762x51_Mag"",""100Rnd_65x39_caseless_mag"",""1Rnd_HE_Grenade_shell"",""3Rnd_HE_Grenade_shell"",""1Rnd_Smoke_Grenade_shell"",""1Rnd_SmokeGreen_Grenade_shell"",""Chemlight_green"",""NLAW_F"",""Laserbatteries"",""HandGrenade"",""MiniGrenade"",""SmokeShell"",""SmokeShellGreen"",""UGL_FlareWhite_F"",""UGL_FlareGreen_F""],[24,6,6,6,6,3,1,2,2,6,3,2,6,6,2,2,2,2]],[[""Laserdesignator"",""FirstAidKit"",""acc_flashlight"",""bipod_01_F_blk""],[1,10,2,1]],[[""B_Kitbag_mcamo""],[2]]],false]";
+						};
+					};
+				};
+				nAttributes=1;
+			};
 		};
-		class Item3
+		class Item2
 		{
 			dataType="Group";
 			side="West";
@@ -193,7 +198,7 @@ class Mission
 			};
 			id=3;
 		};
-		class Item4
+		class Item3
 		{
 			dataType="Group";
 			side="East";
@@ -225,7 +230,7 @@ class Mission
 			};
 			id=5;
 		};
-		class Item5
+		class Item4
 		{
 			dataType="Group";
 			side="Independent";
@@ -257,7 +262,7 @@ class Mission
 			};
 			id=7;
 		};
-		class Item6
+		class Item5
 		{
 			dataType="Group";
 			side="Civilian";
