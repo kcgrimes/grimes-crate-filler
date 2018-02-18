@@ -1,6 +1,6 @@
 ## Grimes Crate Filler
 
-The Grimes Crate Filler script is an old-fashioned Ammo Crate Refill script for ArmA 3, including all weapons, magazines, items, clothing, and bags.
+The Grimes Crate Filler script is an old-fashioned Ammo Crate Refill script for ArmA 3, including modular use of all weapons, attachments, magazines, items, clothing, bags, and much more!
 
 This package includes an application of the script as part of an example mission. 
 
@@ -22,7 +22,7 @@ At this time, there is no “installer” for the script, and it is instead a si
 	1. github: https://github.com/kcgrimes/grimes-crate-filler
 	1. Armaholic: http://www.armaholic.com/page.php?id=24116
 2. Simply copy the file "G_Occupation.sqf" into your mission directory
-3. In the ArmA 3 editor, place the Supply Box (NATO) ammo crate found in the Empty -> Ammo section. 
+3. In the ArmA 3 editor, place an ammo crate found in the Empty -> Ammo section. 
 4. In the crate's Init field, type the following command:
 
 ```
@@ -35,11 +35,12 @@ Notes/Tips:
 * Unfortunately as of the release of this script the crate sorting system in A3 isn't so great. Here's what you need to know.
 	* All - Displays all items spawned into the crate
 	* Weapons - Only weapons, launchers, and all bags (not vests)
-	* Magazines - Only magazines, throwables, launchable, plantables, and all bags (not vests)
+	* Magazines - Only magazines, throwables, launchables, plantables, and all bags (not vests)
 	* Items - Only attachments, gadgets, items, kits, hat/helmets, uniforms, vests, and all bags
 	* This is why I suggest you keep the bag/uniform/vest/hat count low, as it is very cluttery. Sorry!
 * Uniforms and vests have a commented number to the right of the classname. This indicates their capacity. Capacity for all bags was said to me 1 weapon, 13 magazines.
 * Players can only wear uniforms of their faction
+* Although it is possible to spawn everything into the crate, it is not recommended in Multiplayer due to lag. However, default settings and under will only cause an extra second of loading.
 * All of the recommended limitations can be experimented with, of course. Make your mission as good as it can be!
 
 ## Documentation
