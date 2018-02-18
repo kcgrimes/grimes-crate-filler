@@ -95,7 +95,7 @@ class Mission
 {
 	class Intel
 	{
-		briefingName="Grimes' Crate Filler";
+		briefingName="Grimes Crate Filler";
 		overviewText="Old-fashioned Ammo Crate Refill script for ArmA 3, including modular use of all weapons, attachments, magazines, items, clothing, bags and much more!";
 		startWeather=0.28999999;
 		startWind=0.099999994;
@@ -129,7 +129,7 @@ class Mission
 			class PositionInfo
 			{
 				position[]={1538.9421,6.3924227,5059.3428};
-				angles[]={-0,0.30845377,0};
+				angles[]={0,0.30845377,0};
 			};
 			side="Empty";
 			flags=4;
@@ -147,7 +147,7 @@ class Mission
 			class PositionInfo
 			{
 				position[]={1540.6891,6.3924227,5054.5845};
-				angles[]={-0,0.30845377,0};
+				angles[]={0,0.30845377,0};
 			};
 			side="Empty";
 			flags=4;
@@ -173,7 +173,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1539.1492,5.5014391,5052.7866};
-						angles[]={-0,0.30845371,0};
+						angles[]={0,0.30845371,0};
 					};
 					side="West";
 					flags=6;
@@ -206,7 +206,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1538.833,5.5014391,5051.7964};
-						angles[]={-0,0.30845371,0};
+						angles[]={0,0.30845371,0};
 					};
 					side="East";
 					flags=6;
@@ -238,7 +238,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1540.1927,5.5014391,5052.4331};
-						angles[]={-0,0.30845371,0};
+						angles[]={0,0.30845371,0};
 					};
 					side="Independent";
 					flags=6;
@@ -270,7 +270,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1539.895,5.5014391,5051.3877};
-						angles[]={-0,0.30845371,0};
+						angles[]={0,0.30845371,0};
 					};
 					side="Civilian";
 					flags=6;
