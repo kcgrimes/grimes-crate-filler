@@ -5,9 +5,9 @@ class Header
 	maxPlayers = 4;
 };
 
-author = KC Grimes;
-onLoadName = Grimes' Crate Filler;
-onLoadMission = Old-fashioned Ammo Crate Refill script for ArmA 3, including modular use of all weapons, attachments, magazines, items, clothing, bags and much more!;
+author = "KC Grimes";
+onLoadName = "Grimes Crate Filler";
+onLoadMission = "Old-fashioned Ammo Crate Refill script for ArmA 3, including modular use of all weapons, attachments, magazines, items, clothing, bags and much more!";
 onLoadIntroTime = false;
 onLoadMissionTime = false;
 loadScreen = "G_crate_loadScreen.paa";
