@@ -16,7 +16,7 @@ class EditorData
 	};
 	class Camera
 	{
-		pos[]={1527.4037,44.528324,4998.2881};
+		pos[]={1528.9099,60.715839,4991.479};
 		dir[]={0.19172847,-0.45437005,0.86993754};
 		up[]={0.097793572,0.89081246,0.4437227};
 		aside[]={0.97656631,1.07917e-007,-0.21522832};
@@ -114,7 +114,7 @@ class Mission
 	};
 	class Entities
 	{
-		items=6;
+		items=7;
 		class Item0
 		{
 			dataType="Marker";
@@ -128,8 +128,26 @@ class Mission
 			dataType="Object";
 			class PositionInfo
 			{
+				position[]={1538.9421,6.3924227,5059.3428};
+				angles[]={-0,0.30845377,0};
+			};
+			side="Empty";
+			flags=4;
+			class Attributes
+			{
+				skill=0.60000002;
+				init="nul = [this] execVM ""G_crate_manual101.sqf"";";
+			};
+			id=1;
+			type="B_supplyCrate_F";
+		};
+		class Item2
+		{
+			dataType="Object";
+			class PositionInfo
+			{
 				position[]={1540.6891,6.3924227,5054.5845};
-				angles[]={0,0.30845377,0};
+				angles[]={-0,0.30845377,0};
 			};
 			side="Empty";
 			flags=4;
@@ -142,7 +160,7 @@ class Mission
 			id=2;
 			type="B_supplyCrate_F";
 		};
-		class Item2
+		class Item3
 		{
 			dataType="Group";
 			side="West";
@@ -155,7 +173,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1539.1492,5.5014391,5052.7866};
-						angles[]={0,0.30845371,0};
+						angles[]={-0,0.30845371,0};
 					};
 					side="West";
 					flags=6;
@@ -175,7 +193,7 @@ class Mission
 			};
 			id=3;
 		};
-		class Item3
+		class Item4
 		{
 			dataType="Group";
 			side="East";
@@ -188,7 +206,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1538.833,5.5014391,5051.7964};
-						angles[]={0,0.30845371,0};
+						angles[]={-0,0.30845371,0};
 					};
 					side="East";
 					flags=6;
@@ -207,7 +225,7 @@ class Mission
 			};
 			id=5;
 		};
-		class Item4
+		class Item5
 		{
 			dataType="Group";
 			side="Independent";
@@ -220,7 +238,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1540.1927,5.5014391,5052.4331};
-						angles[]={0,0.30845371,0};
+						angles[]={-0,0.30845371,0};
 					};
 					side="Independent";
 					flags=6;
@@ -239,7 +257,7 @@ class Mission
 			};
 			id=7;
 		};
-		class Item5
+		class Item6
 		{
 			dataType="Group";
 			side="Civilian";
@@ -252,7 +270,7 @@ class Mission
 					class PositionInfo
 					{
 						position[]={1539.895,5.5014391,5051.3877};
-						angles[]={0,0.30845371,0};
+						angles[]={-0,0.30845371,0};
 					};
 					side="Civilian";
 					flags=6;
