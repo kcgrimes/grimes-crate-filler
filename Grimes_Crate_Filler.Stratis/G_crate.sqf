@@ -7,12 +7,12 @@ Version: V2.0
 if (!isServer) exitWith {};
 
 //Begin Basic Parameters (edit these as described in the comments, defaults already chosen and active)
-_Wpncount                = 10;   //Quantity of each weapon/launcher to be spawned
-_Ammocount               = 50;   //Quantity of each type of ammunition/explosive to be spawned
-_Itemcount               = 10;   //Quantity of each type of item (gadgets, attachments, etc)
-_Clothingcount           = 3;    //Quantity of each type of uniform/hat/helmet/glasses (suggested to keep small due to not being stackable)
-_Bagcount                = 3;    //Quantity of each type of bag/vest item (suggested to keep small due to not being stackable)
-_Refresh                 = 600;  //Amount of time until crate empties/refills (seconds), 0 is no refresh
+_weaponCount             = 10;   //Quantity of each weapon/launcher to be spawned
+_ammoCount               = 50;   //Quantity of each type of ammunition/explosive to be spawned
+_itemCount               = 10;   //Quantity of each type of item (gadgets, attachments, etc)
+_uniformCount            = 3;    //Quantity of each type of uniform/hat/helmet/glasses (suggested to keep small due to not being stackable)
+_bagCount                = 3;    //Quantity of each type of bag/vest item (suggested to keep small due to not being stackable)
+_refreshTime             = 600;  //Amount of time until crate empties/refills (seconds), 0 is no refresh
 //End Basic Parameters
 
 //Begin Advanced Settings
@@ -22,11 +22,9 @@ _NATO_Weapons              = 1; //All weapons seen as BLUFOR weapons
 _OPFOR_Ind_Weapons         = 1; //All weapons seen as OPFOR and Independent weapons
 _Mixed_Weapons             = 1; //All weapons found in BLUFOR, OPFOR, and Independent arsenals
 _Base_Weapons              = 1; //All weapons selected above will only be base/stock variants with no attachments (see attachments parameter)
-_Weapon_Ammo               = 1; //All ammunition used by any weapons pulled from above parameters
 _NATO_Launchers            = 1; //All rocket/missile launchers seen as BLUFOR launchers
 _OPFOR_Ind_Launchers       = 1; //All rocket/missile launchers seen as OPFOR and Independent launchers
-_NATO_Launcher_Ammo        = 1; //All ammunition used by BLUFOR rocket/missile launchers
-_OPFOR_Ind_Launcher_Ammo   = 1; //All ammunition used by OPFOR and Independent rocket/missile launchers
+_Weapon_Ammo               = 1; //All ammunition used by any weapons & launchers pulled from above parameters
 _Plantable_Explosives      = 1; //All plantable explosive devices (mines, charges, etc.) (not sorted by faction)
 _Grenade_Launcher_Ammo     = 1; //All grenade launcher ammo
 _Throwables                = 1; //All throwable munitions (smokes, grenades, chemlights)
@@ -41,724 +39,378 @@ _Civilian_Uniforms         = 1; //All Civilian uniforms (Note: Can only wear the
 _Guerilla_Uniforms         = 1; //All Guerilla uniforms, which are hit and miss for who can wear them, but mostly follow the name's indication (too many exceptions to split)
 _Other_Uniforms            = 1; //All Other uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
 _Vests                     = 1; //All vests and chest rigs
-_Bags                      = 1; //All empty, normal backpacks
+_Empty_Bags                = 1; //All empty, normal backpacks
 _Preset_Bags               = 1; //All preset bags (normal bags containing a preset of items, such as First Aid Kits and Explosives, which are already found elsewhere in the crate)
 _Assemble_Bags             = 1; //All backpacks that lack cargo but can be used or combined with another bag to assemble a static weapon
 
-_Test_bed                  = 0; //Location to place any items to be tested for dev purposes (Keep off unless in specific use)
-_Debug                     = 1; //Formatted return for all entities added to ammo box (.rpt)
+_Debug                     = 1; //Dump formatted return of all entities added to ammo box to .rpt
 //End Advanced Settings
 
+//Start debug timer if in use
+private ["_timer"];
+if (_Debug == 1) then {
+	_timer = time;
+	systemChat "G_Crate Debug Mode is enabled!";
+};
+
+//Define ammo crate object
 _crate = _this select 0;
 
-while {alive _crate} do
-{
-scopeName "whileloop";
+//Add all weapons in config to array
+_cfgWeapons = configFile >> "CfgWeapons";
+//Add all magazines in config to array
+_cfgMagazines = configFile >> "CfgMagazines";
+//Add all vehicles in config to array
+_cfgVehicles = configFile >> "CfgVehicles";
+//Add all glasses/goggles in config to array
+_cfgGlasses = configFile >> "CfgGlasses";
 
-clearMagazineCargoGlobal _crate;
-clearWeaponCargoGlobal _crate;
-clearItemCargoGlobal _crate;
-clearBackpackCargoGlobal _crate;
-
-private ["_NATO_Weapon_Array","_OPFOR_Ind_Weapon_Array","_Mixed_Weapon_Array"];
-//NATO Weapons
-_NATO_Weapon_Array = [];
-if (_NATO_Weapons == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
+//Create function for adding items from CfgWeapons to an array
+_G_fnc_createItemsArray = {
+	_cfgChoice = _this select 0;
+	private ["_cfgTable"];
+	//Define config table based on param
+	switch (_cfgChoice) do {
+		case 0: {_cfgTable = _cfgWeapons;};
+		case 1: {_cfgTable = _cfgMagazines;};
+		case 2: {_cfgTable = _cfgVehicles;};
+		case 3: {_cfgTable = _cfgGlasses;};
+	};
+	_allowedType = _this select 1;
+	//Type 1 = rifle, 2 = handgun, 4 = launcher, 131072 and 4096 = various items, "Backpacks" = bags, ""/0/undefined = glasses/goggles
+	_allowedStrings = _this select 2;
+	_customCheck = _this select 3;
 	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
+	//Cycle through each item in config
+	_itemsArrayReturn = [];
+	for "_i" from 0 to (count _cfgTable)-1 do
 	{
-		_cur_cfg = _cfgWeapons select _i;
+		//Select element from config, similar to array
+		_curCfg = _cfgTable select _i;
 		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			private ["_base"];
-			if (_Base_Weapons == 1) then {
-				_base = (configName (configFile >> "CfgWeapons" >> _classname >> "LinkedItems")) == "";
+		//Verify working with config class
+		if (isClass _curCfg) then {
+			//Define classname from config name
+			_className = configName _curCfg;
+			//By default, type is found as number here
+			_type = getNumber (_curCfg >> "type");
+			//Check if choice 2 so kind of bag can be determined			
+			private ["_isEmptyBag", "_isAssembleBag"];
+			if (_cfgChoice == 2) then {
+				//Choice 2, so get type a different way
+				_type = getText (_curCfg >> "vehicleClass");
+				
+				//Check for items, weapons, and magazines in subject bag
+				if (((count (_cfgVehicles >> _className >> "TransportItems")) + (count (_cfgVehicles >> _className >> "TransportWeapons")) + (count (_cfgVehicles >> _className >> "TransportMagazines"))) == 0) then {
+					//Nothing in bag
+					_isEmptyBag = true;
+				}
+				else
+				{
+					//Something in bag
+					_isEmptyBag = false;
+				};
+				
+				//Check if bag has attributes of assemble bag
+				_isAssembleBag = isClass (_cfgVehicles >> _className >> "assembleInfo");
+			};
+			//Check for faction- or item-specific strings in classname
+			//By default, item is not included
+			_stringIn = false;
+			//Check if string limiter param is empty
+			if ((count _allowedStrings) == 0) then {
+				//No strings to limit by, so default true
+				_stringIn = true;
 			}
 			else
 			{
-				_base = true;
+				{
+					//Check if string is inside classname
+					if ([_x, _className] call BIS_fnc_inString) then {
+						//String is in classname, so allow it to be added
+						_stringIn = true;
+					};
+				} forEach _allowedStrings;
 			};
-			if (_cur_cfg_type in [1,2] && _picture != "" && !(_classname in _NATO_Weapon_Array) && ((["MX", _classname] call BIS_fnc_inString) || (["EBR", _classname] call BIS_fnc_inString) || (["LRR", _classname] call BIS_fnc_inString) || (["P07", _classname] call BIS_fnc_inString) || (["SMG_01", _classname] call BIS_fnc_inString) || (["Pistol_heavy_01", _classname] call BIS_fnc_inString)) && (_base)) then {
-				if (_Debug == 1) then {if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};};
-				_NATO_Weapon_Array set[count _NATO_Weapon_Array, _classname];
+			//Check custom param
+			//By default, custom check fails
+			_customCheckReturn = false;
+			//Check if custom check was defined
+			if (!isNil "_customCheck") then {
+				//Custom check defined
+				call compile _customCheck;
+			}
+			else
+			{
+				//No custom check, so pass
+				_customCheckReturn = true;
+			};
+			//Check item type, a picture path exists (is real), is not a private object, string limiters, not already in array, is base one way or another, and passes the custom check
+			if ((_type in _allowedType) && (getText (_curCfg >> "picture") != "") && (getNumber (_curCfg >> "scope") != 0) && (_stringIn) && !(_className in _itemsArrayReturn) && (_customCheckReturn)) then {
+				//Check if debug
+				if (_Debug == 1) then {
+					//For debug, output classname, type, and config path
+					diag_log format ["Classname: %1 - Type: %2 - Cfg Dir: %3", _className, _type, _curCfg];
+				};
+				//Add item to items array
+				_itemsArrayReturn pushBack _className;
 			};
 		};
 	};
+	
+	//Return array of added items for later use
+	_itemsArrayReturn;
+};
+
+//Function for adding previously defined arrays of items to the crate
+_G_fnc_addToCrate = {
+	//Add all "pulled" items to the crate in order
+	//For each weapon in array, add it to the crate
 	{
-		_crate addItemCargoGlobal [_x, _Wpncount];
-	} foreach _NATO_Weapon_Array;
+		_crate addItemCargoGlobal [_x, _weaponCount];
+	} forEach _allWeaponsArray;
+	
+	//For each magazine in array, add it to the crate
+	{
+		_crate addMagazineCargoGlobal [_x, _ammoCount];
+	} forEach _allMagazinesArray;
+	
+	//For each item in array, add it to the crate
+	{
+		_crate addItemCargoGlobal [_x, _itemCount];
+	} forEach _allItemsArray;
+	
+	//For each uniform in array, add it to the crate
+	{
+		_crate addItemCargoGlobal [_x, _uniformCount];
+	} forEach _allUniformsArray;
+	
+	//For each vest in array, add it to the crate
+	{
+		_crate addItemCargoGlobal [_x, _bagCount];
+	} forEach _Vest_Array;
+	
+	//For each bag in array, add it to the crate
+	{
+		_crate addBackPackCargoGlobal [_x, _bagCount];
+	} forEach _allBagsArray;
+};
+
+//NATO Weapons
+_NATO_Weapon_Array = [];
+if (_NATO_Weapons == 1) then {
+	//CfgWeapons, primary or secondary, BLUFOR faction strings
+	//For custom - Treat item as base by default; Check if only real base weapons allowed, if so, if LinkedItems does not exist, then this is a base weapon (or not a weapon), return true
+	_NATO_Weapon_Array = [0, [1, 2], ["MX", "EBR", "LRR", "P07", "SMG_01", "Pistol_heavy_01"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
 };
 
 //OPFOR/Independent Weapons
 _OPFOR_Ind_Weapon_Array = [];
 if (_OPFOR_Ind_Weapons == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			private ["_base"];
-			if (_Base_Weapons == 1) then {
-				_base = (configName (configFile >> "CfgWeapons" >> _classname >> "LinkedItems")) == "";
-			}
-			else
-			{
-				_base = true;
-			};
-			if (_cur_cfg_type in [1,2] && _picture != "" && !(_classname in _OPFOR_Ind_Weapon_Array) && ((["Katiba", _classname] call BIS_fnc_inString) || (["GM6", _classname] call BIS_fnc_inString) || (["DMR", _classname] call BIS_fnc_inString) || (["Zafir", _classname] call BIS_fnc_inString) || (["PDW2000", _classname] call BIS_fnc_inString) || (["SMG_02", _classname] call BIS_fnc_inString) || (["rook40", _classname] call BIS_fnc_inString) || (["Pistol_heavy_02", _classname] call BIS_fnc_inString)) && (_base)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_OPFOR_Ind_Weapon_Array set[count _OPFOR_Ind_Weapon_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Wpncount];
-	} foreach _OPFOR_Ind_Weapon_Array;
+	//CfgWeapons, primary or secondary, OPFOR/Ind faction strings
+	//For custom - Treat item as base by default; Check if only real base weapons allowed, if so, if LinkedItems does not exist, then this is a base weapon (or not a weapon), return true
+	_OPFOR_Ind_Weapon_Array = [0, [1, 2], ["Katiba", "GM6", "DMR", "Zafir", "PDW2000", "SMG_02", "rook40", "Pistol_heavy_02"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
 };
 
-//Mixed B/O weapons
+//Mixed NATO/OPFOR weapons
 _Mixed_Weapon_Array = [];
 if (_Mixed_Weapons == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			private ["_base"];
-			if (_Base_Weapons == 1) then {
-				_base = (configName (configFile >> "CfgWeapons" >> _classname >> "LinkedItems")) == "";
-			}
-			else
-			{
-				_base = true;
-			};
-			if (_cur_cfg_type in [1,2] && _picture != "" && !(_classname in _Mixed_Weapon_Array) && ((["Mk20", _classname] call BIS_fnc_inString) || (["TRG21", _classname] call BIS_fnc_inString) || (["SDAR", _classname] call BIS_fnc_inString) || (["ACPC2", _classname] call BIS_fnc_inString)) && (_base)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Mixed_Weapon_Array set[count _Mixed_Weapon_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Wpncount];
-	} foreach _Mixed_Weapon_Array;
-};
-
-//Weapon-specific ammo
-if (_Weapon_Ammo == 1) then {
-	_weapons = _Mixed_Weapon_Array + _OPFOR_Ind_Weapon_Array + _NATO_Weapon_Array;
-	_magazines = [];
-	for "_i" from 0 to (count _weapons)-1 do
-	{
-		_classname = _weapons select _i;
-		_cur_cfg_magazines = getArray (configFile >> "CfgWeapons" >> _classname >> "magazines");
-		{
-			if !(_x in _magazines) then {
-				_magazines = _magazines + [_x];
-			};
-		} forEach _cur_cfg_magazines;
-	};
-	{
-		_crate addMagazineCargoGlobal [_x, _Ammocount];
-	} foreach _magazines;
+	//CfgWeapons, primary or secondary, Mixed faction strings
+	//For custom - Treat item as base by default; Check if only real base weapons allowed, if so, if LinkedItems does not exist, then this is a base weapon (or not a weapon), return true
+	_Mixed_Weapon_Array = [0, [1, 2], ["Mk20", "TRG21", "SDAR", "ACPC2"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
 };
 
 //NATO Launchers
+_NATO_Launcher_Array = [];
 if (_NATO_Launchers == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_NATO_Launcher_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 4 && _picture != "" && !(_classname in _NATO_Launcher_Array) && ((["launch_b", _classname] call BIS_fnc_inString) || (["launch_nlaw", _classname] call BIS_fnc_inString))) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_NATO_Launcher_Array set[count _NATO_Launcher_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Wpncount];
-	} foreach _NATO_Launcher_Array;
+	//CfgWeapons, launcher, BLUFOR faction strings
+	_NATO_Launcher_Array = [0, [4], ["launch_b", "launch_nlaw"]] call _G_fnc_createItemsArray;
 };
 
 //OPFOR Launchers
+_OPFOR_Ind_Launcher_Array = [];
 if (_OPFOR_Ind_Launchers == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_OPFOR_Ind_Launcher_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 4 && _picture != "" && !(_classname in _OPFOR_Ind_Launcher_Array) && ((["launch_o", _classname] call BIS_fnc_inString) || (["launch_i", _classname] call BIS_fnc_inString) || (["launch_rpg", _classname] call BIS_fnc_inString))) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_OPFOR_Ind_Launcher_Array set[count _OPFOR_Ind_Launcher_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Wpncount];
-	} foreach _OPFOR_Ind_Launcher_Array;
+	//CfgWeapons, launcher, OPFOR faction strings
+	_OPFOR_Ind_Launcher_Array = [0, [4], ["launch_o", "launch_i", "launch_rpg"]] call _G_fnc_createItemsArray;
 };
 
-//NATO Launcher Ammo
-if (_NATO_Launcher_Ammo == 1) then {
-	_cfgMagazines = configFile >> "CfgMagazines";
-	_NATO_Launcher_Ammo_Array = [];
-	
-	for "_i" from 0 to (count _cfgMagazines)-1 do
-	{
-		_cur_cfg = _cfgMagazines select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (((_cur_cfg_type == 6*256) || (_cur_cfg_type == 3*256)) && _picture != "" && !(_classname in _NATO_Launcher_Ammo_Array)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_NATO_Launcher_Ammo_Array set[count _NATO_Launcher_Ammo_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addMagazineCargoGlobal [_x, _Ammocount];
-	} foreach _NATO_Launcher_Ammo_Array;
-};
+//Make combined array of all weapons
+_allWeaponsArray = _NATO_Weapon_Array + _OPFOR_Ind_Weapon_Array + _Mixed_Weapon_Array + _NATO_Launcher_Array + _OPFOR_Ind_Launcher_Array;
 
-//OPFOR Launcher Ammo
-if (_OPFOR_Ind_Launcher_Ammo == 1) then {
-	_cfgMagazines = configFile >> "CfgMagazines";
-	_OPFOR_Ind_Launcher_Ammo_Array = [];
-	
-	for "_i" from 0 to (count _cfgMagazines)-1 do
+//Weapon-specific ammo
+_allMagazinesArray = [];
+if (_Weapon_Ammo == 1) then {
+	//Cycle through each weapon
+	for "_i" from 0 to (count _allWeaponsArray)-1 do
 	{
-		_cur_cfg = _cfgMagazines select _i;
-		
-		if (isClass _cur_cfg) then
+		_weaponClassName = _allWeaponsArray select _i;
+		//Get array of compatible magazines for weapon
+		_curCfgMagazines = getArray (_cfgWeapons >> _weaponClassName >> "magazines");
+		//Cycle through array of compatible magazines
 		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if ((((_cur_cfg_type == 2*256) && (getNumber (_cur_cfg >> "useAction") == 0) && (getNumber (_cur_cfg >> "count") == 1)) || ((_cur_cfg_type == 6*256) && !(_NATO_Launcher_Ammo == 1))) && (_picture != "") && !(_classname in _OPFOR_Ind_Launcher_Ammo_Array)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_OPFOR_Ind_Launcher_Ammo_Array set[count _OPFOR_Ind_Launcher_Ammo_Array, _classname];
+			//Check if magazine is in the array yet
+			if !(_x in _allMagazinesArray) then {
+				//Check if debug
+				if (_Debug == 1) then {
+					//For debug, output classname, type, and config path
+					diag_log format ["Classname: %1 - Type: %2 - Cfg Dir: %3", _x, "From Weapon-Specific", "From Weapon-Specific"];
+				};
+				//Add magazine to the array
+				_allMagazinesArray pushBack _x;
 			};
-		};
+		} forEach _curCfgMagazines;
 	};
-	{
-		_crate addMagazineCargoGlobal [_x, _Ammocount];
-	} foreach _OPFOR_Ind_Launcher_Ammo_Array;
 };
 
 //Plantable Explosives
+_Plantable_Explosives_Array = [];
 if (_Plantable_Explosives == 1) then {
-	_cfgMagazines = configFile >> "CfgMagazines";
-	_Plantable_Explosives_Array = [];
-	
-	for "_i" from 0 to (count _cfgMagazines)-1 do
-	{
-		_cur_cfg = _cfgMagazines select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 2*256 && _picture != "" && !(_classname in _Plantable_Explosives_Array) && (getNumber (_cur_cfg >> "useAction") == 1)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Plantable_Explosives_Array set[count _Plantable_Explosives_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addMagazineCargoGlobal [_x, _Ammocount];
-	} foreach _Plantable_Explosives_Array;
+	//CfgMagazines, explosives, plantable
+	_Plantable_Explosives_Array = [1, [2*256], [], "if (getNumber (_curCfg >> ""useAction"") == 1) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //Grenade launcher rounds
+_Grenade_Launch_Ammo_Array = [];
 if (_Grenade_Launcher_Ammo == 1) then {
-	_cfgMagazines = configFile >> "CfgMagazines";
-	_Grenade_Launch_Ammo_Array = [];
-	
-	for "_i" from 0 to (count _cfgMagazines)-1 do
-	{
-		_cur_cfg = _cfgMagazines select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 16 && _picture != "" && !(_classname in _Grenade_Launch_Ammo_Array) && !(getNumber (_cur_cfg >> "count") == 16)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Grenade_Launch_Ammo_Array set[count _Grenade_Launch_Ammo_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addMagazineCargoGlobal [_x, _Ammocount];
-	} foreach _Grenade_Launch_Ammo_Array;
+	//CfgMagazines, GL rounds, GL rounds
+	_Grenade_Launch_Ammo_Array = [1, [16], [], "if (getNumber (_curCfg >> ""count"") in [1,3,6]) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //Throwable grenades, smokes, chemlights
+_Throwable_Array = [];
 if (_Throwables == 1) then {
-	_cfgMagazines = configFile >> "CfgMagazines";
-	_Throwable_Array = [];
-	
-	for "_i" from 0 to (count _cfgMagazines)-1 do
-	{
-		_cur_cfg = _cfgMagazines select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 256 && _picture != "" && !(_classname in _Throwable_Array) && (getNumber (_cur_cfg >> "count") == 1)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Throwable_Array set[count _Throwable_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addMagazineCargoGlobal [_x, _Ammocount];
-	} foreach _Throwable_Array;
+	//CfgMagazines, explosives, like-grenade
+	_Throwable_Array = [1, [256], [], "if (getNumber (_curCfg >> ""count"") == 1) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
+//Make combined array of all magazines
+_allMagazinesArray = _allMagazinesArray + _Plantable_Explosives_Array + _Grenade_Launch_Ammo_Array + _Throwable_Array;
+
 //Attachments
+_Attachment_Array = [];
 if (_Attachments == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Attachment_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Attachment_Array) && ((["acc_", _classname] call BIS_fnc_inString) || (["optic_", _classname] call BIS_fnc_inString) || (["muzzle_", _classname] call BIS_fnc_inString))) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Attachment_Array set[count _Attachment_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Itemcount];
-	} foreach _Attachment_Array;
+	//CfgWeapons, item-type, "acc_" for flashlight, "bipod_" for bipod, "optic_" for optics, "muzzle_" for others
+	_Attachment_Array = [0, [131072], ["acc_", "bipod_", "optic_", "muzzle_"]] call _G_fnc_createItemsArray;
 };
 
 //Items
+_Item_Array = [];
 if (_Items == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Item_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-				if (_cur_cfg_type in [131072,4096,4] && (getText(_cur_cfg >> "displayName") != "") && _picture != "" && !(_classname in _Item_Array) && ((["item", _classname] call BIS_fnc_inString) || (["MineDetector", _classname] call BIS_fnc_inString) || (["kit", _classname] call BIS_fnc_inString) || (getNumber (_cur_cfg >> "useAsBinocular") == 1))) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Item_Array set[count _Item_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Itemcount];
-	} foreach _Item_Array;
+	//CfgWeapons, item-type or binocular-like/NVG, must have display name to prevent error on inclusion of non-existent items, item/minedetector/kit for specific items, useAsBinocular for rangefinders/binoculars
+	_Item_Array = [0, [131072, 4096], [], "if ((getText (_curCfg >> ""displayName"") != """") && (([""item"", _className] call BIS_fnc_inString) || ([""MineDetector"", _className] call BIS_fnc_inString) || ([""kit"", _className] call BIS_fnc_inString) || (getNumber (_curCfg >> ""useAsBinocular"") == 1))) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
+//Make combined array of all actual items
+_allItemsArray = _Attachment_Array + _Item_Array;
+
 //Helmets/hats
+_Headgear_Array = [];
 if (_Headgear == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Headgear_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Headgear_Array) && (["H_", _classname] call BIS_fnc_inString) && !(["V_", _classname] call BIS_fnc_inString)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Headgear_Array set[count _Headgear_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _Headgear_Array;
+	//CfgWeapons, item-type, "acc_" for headgear, not "V_" to avoid vests
+	_Headgear_Array = [0, [131072], ["H_"], "if (!([""V_"", _className] call BIS_fnc_inString)) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //Glasses/goggles
+_Glasses_Goggles_Array = [];
 if (_Glasses_Goggles == 1) then {
-	_cfgGlasses = configFile >> "CfgGlasses";
-	_Glasses_Goggles_Array = [];
-	
-	for "_i" from 0 to (count _cfgGlasses)-1 do
-	{
-		_cur_cfg = _cfgGlasses select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 4 && _picture != "" && !(_classname in _Glasses_Goggles_Array) && (getText(_cur_cfg >> "model") != "")) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Glasses_Goggles_Array set[count _Glasses_Goggles_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _Glasses_Goggles_Array;
+	//CfgGlasses, no type, must have model to prevent error on inclusion of non-existent items
+	_Glasses_Goggles_Array = [3, [0], [], "if (getText(_curCfg >> ""model"") != """") then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //BLUFOR Uniforms
+_BLUFOR_Uniforms_Array = [];
 if (_BLUFOR_Uniforms == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_BLUFOR_Uniforms_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _BLUFOR_Uniforms_Array) && (["U_B_", _classname] call BIS_fnc_inString)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_BLUFOR_Uniforms_Array set[count _BLUFOR_Uniforms_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _BLUFOR_Uniforms_Array;
+	//CfgWeapons, item-type, BLUFOR faction string
+	_BLUFOR_Uniforms_Array = [0, [131072], ["U_B_"]] call _G_fnc_createItemsArray;
 };
 
 //OPFOR Uniforms
+_OPFOR_Uniforms_Array = [];
 if (_OPFOR_Uniforms == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_OPFOR_Uniforms_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _OPFOR_Uniforms_Array) && (["U_O_", _classname] call BIS_fnc_inString)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_OPFOR_Uniforms_Array set[count _OPFOR_Uniforms_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _OPFOR_Uniforms_Array;
+	//CfgWeapons, item-type, OPFOR faction string
+	_OPFOR_Uniforms_Array = [0, [131072], ["U_O_"]] call _G_fnc_createItemsArray;
 };
 
 //Independent Uniforms
+_Independent_Uniforms_Array = [];
 if (_Independent_Uniforms == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Independent_Uniforms_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Independent_Uniforms_Array) && (["U_I_", _classname] call BIS_fnc_inString)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Independent_Uniforms_Array set[count _Independent_Uniforms_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _Independent_Uniforms_Array;
+	//CfgWeapons, item-type, Ind faction string
+	_Independent_Uniforms_Array = [0, [131072], ["U_I_"]] call _G_fnc_createItemsArray;
 };
 
 //Civilian Uniforms
+_Civilian_Uniforms_Array = [];
 if (_Civilian_Uniforms == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Civilian_Uniforms_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Civilian_Uniforms_Array) && (["U_C_", _classname] call BIS_fnc_inString)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Civilian_Uniforms_Array set[count _Civilian_Uniforms_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _Civilian_Uniforms_Array;
+	//CfgWeapons, item-type, Civilian faction string
+	_Civilian_Uniforms_Array = [0, [131072], ["U_C_"]] call _G_fnc_createItemsArray;
 };
 
 //Guerilla Uniforms
+_Guerilla_Uniforms_Array = [];
 if (_Guerilla_Uniforms == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Guerilla_Uniforms_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Guerilla_Uniforms_Array) && ((["U_BG_", _classname] call BIS_fnc_inString) || (["U_OG_", _classname] call BIS_fnc_inString) || (["U_IG_", _classname] call BIS_fnc_inString))) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Guerilla_Uniforms_Array set[count _Guerilla_Uniforms_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _Guerilla_Uniforms_Array;
+	//CfgWeapons, item-type, Guerilla faction strings
+	_Guerilla_Uniforms_Array = [0, [131072], ["U_BG_", "U_OG_", "U_IG_"]] call _G_fnc_createItemsArray;
 };
 
 //Other Uniforms
+_Other_Uniforms_Array = [];
 if (_Other_Uniforms == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Other_Uniforms_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Other_Uniforms_Array) && !(["U_B_", _classname] call BIS_fnc_inString) && !(["U_O_", _classname] call BIS_fnc_inString) && !(["U_I_", _classname] call BIS_fnc_inString) && !(["U_BG_", _classname] call BIS_fnc_inString) && !(["U_IG_", _classname] call BIS_fnc_inString) && !(["U_OG_", _classname] call BIS_fnc_inString) && ((["U_", _classname] call BIS_fnc_inString) || (["U_OG_", _classname] call BIS_fnc_inString) || (["U_IG_", _classname] call BIS_fnc_inString))) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Other_Uniforms_Array set[count _Other_Uniforms_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Clothingcount];
-	} foreach _Other_Uniforms_Array;
+	//CfgWeapons, item-type, Uniform string, not any faction's string
+	_Other_Uniforms_Array = [0, [131072], ["U_"], "if (!([""U_B_"", _className] call BIS_fnc_inString) && !([""U_O_"", _className] call BIS_fnc_inString) && !([""U_I_"", _className] call BIS_fnc_inString) && !([""U_BG_"", _className] call BIS_fnc_inString) && !([""U_IG_"", _className] call BIS_fnc_inString) && !([""U_OG_"", _className] call BIS_fnc_inString) && !([""U_C_"", _className] call BIS_fnc_inString)) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
+//Make combined array of all hats, helmets, glasses/goggles, and uniforms
+_allUniformsArray = _Headgear_Array + _Glasses_Goggles_Array + _BLUFOR_Uniforms_Array + _OPFOR_Uniforms_Array + _Independent_Uniforms_Array + _Civilian_Uniforms_Array + _Guerilla_Uniforms_Array + _Other_Uniforms_Array;
+
 //Vests
+_Vest_Array = [];
 if (_Vests == 1) then {
-	_cfgWeapons = configFile >> "CfgWeapons";
-	_Vest_Array = [];
-	
-	for "_i" from 0 to (count _cfgWeapons)-1 do
-	{
-		_cur_cfg = _cfgWeapons select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getNumber(_cur_cfg >> "type");
-			_picture = getText(_cur_cfg >> "picture");
-			if (_cur_cfg_type == 131072 && _picture != "" && !(_classname in _Vest_Array) && (["V_", _classname] call BIS_fnc_inString)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Vest_Array set[count _Vest_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addItemCargoGlobal [_x, _Bagcount];
-	} foreach _Vest_Array;
+	//CfgWeapons, item-type, "V_" for vest
+	_Vest_Array = [0, [131072], ["V_"]] call _G_fnc_createItemsArray;
 };
 
 //Bags
-if (_Bags == 1) then {
-	_cfgVehicles = configFile >> "CfgVehicles";
-	_Bag_Array = [];
-	
-	for "_i" from 0 to (count _cfgVehicles)-1 do
-	{
-		_cur_cfg = _cfgVehicles select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getText(_cur_cfg >> "vehicleClass");
-			_picture = getText(_cur_cfg >> "picture");
-
-			private ["_noItems","_noWeapons","_noMagazines","_isBag"];
-			_Items_Check_Cfg = (configFile >> "CfgVehicles" >> _classname >> "TransportItems");
-			if ((count _Items_Check_Cfg) == 0) then {
-				_noItems = true} else {_noItems = false};
-			_Weapons_Check_Cfg = (configFile >> "CfgVehicles" >> _classname >> "TransportWeapons");
-			if ((count _Weapons_Check_Cfg) == 0) then {
-				_noWeapons = true} else {_noWeapons = false};
-			_Magazines_Check_Cfg = (configFile >> "CfgVehicles" >> _classname >> "TransportMagazines");
-			if ((count _Magazines_Check_Cfg) == 0) then {
-				_noMagazines = true} else {_noMagazines = false};
-			if ((_noItems) && (_noWeapons) && (_noMagazines)) then {
-				_isBag = true;
-			}
-			else
-			{
-				_isBag = false;
-			};
-
-			_isAssemble = (configName (configFile >> "CfgVehicles" >> _classname >> "assembleInfo")) != "";
-			
-			if (_cur_cfg_type == "Backpacks" && _picture != "" && !(_classname in _Bag_Array) && (_isBag) && !(_isAssemble)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Bag_Array set[count _Bag_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addBackPackCargoGlobal [_x, _Bagcount];
-	} foreach _Bag_Array;
+_Empty_Bag_Array = [];
+if (_Empty_Bags == 1) then {
+	//CfgVehicles, backpack-type, empty bag
+	_Empty_Bag_Array = [2, ["Backpacks"], [], "if ((_isEmptyBag) && !(_isAssembleBag)) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //Preset bags
+_Preset_Bag_Array = [];
 if (_Preset_Bags == 1) then {
-	_cfgVehicles = configFile >> "CfgVehicles";
-	_Preset_Bag_Array = [];
-	
-	for "_i" from 0 to (count _cfgVehicles)-1 do
-	{
-		_cur_cfg = _cfgVehicles select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getText(_cur_cfg >> "vehicleClass");
-			_picture = getText(_cur_cfg >> "picture");
-			
-			private ["_noItems","_noWeapons","_noMagazines","_isBag"];
-			_Items_Check_Cfg = (configFile >> "CfgVehicles" >> _classname >> "TransportItems");
-			if ((count _Items_Check_Cfg) == 0) then {
-				_noItems = true} else {_noItems = false};
-			_Weapons_Check_Cfg = (configFile >> "CfgVehicles" >> _classname >> "TransportWeapons");
-			if ((count _Weapons_Check_Cfg) == 0) then {
-				_noWeapons = true} else {_noWeapons = false};
-			_Magazines_Check_Cfg = (configFile >> "CfgVehicles" >> _classname >> "TransportMagazines");
-			if ((count _Magazines_Check_Cfg) == 0) then {
-				_noMagazines = true} else {_noMagazines = false};
-			if ((_noItems) && (_noWeapons) && (_noMagazines)) then {
-				_isBag = true;
-			}
-			else
-			{
-				_isBag = false;
-			};
-			
-			_isAssemble = (configName (configFile >> "CfgVehicles" >> _classname >> "assembleInfo")) != "";
-			
-			if (_cur_cfg_type == "Backpacks" && _picture != "" && !(_classname in _Preset_Bag_Array) && !(_isBag) && !(_isAssemble)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Preset_Bag_Array set[count _Preset_Bag_Array, _classname];
-			};
-		};
-	};
-	{
-		_crate addBackPackCargoGlobal [_x, _Bagcount];
-	} foreach _Preset_Bag_Array;
+	//CfgVehicles, backpack-type, preset bag
+	_Preset_Bag_Array = [2, ["Backpacks"], [], "if (!(_isEmptyBag) && !(_isAssembleBag)) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //Assemble bags
+_Assemble_Bag_Array = [];
 if (_Assemble_Bags == 1) then {
-	_cfgVehicles = configFile >> "CfgVehicles";
-	_Assemble_Bag_Array = [];
+	//CfgVehicles, backpack-type, assemble bag
+	_Assemble_Bag_Array = [2, ["Backpacks"], [], "if (_isAssembleBag) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
+};
+
+//Make combined array of all bags
+_allBagsArray = _Empty_Bag_Array + _Preset_Bag_Array + _Assemble_Bag_Array;
+
+while {alive _crate} do {
+	//Empty the crate
+	clearMagazineCargoGlobal _crate;
+	clearWeaponCargoGlobal _crate;
+	clearItemCargoGlobal _crate;
+	clearBackpackCargoGlobal _crate;
 	
-	for "_i" from 0 to (count _cfgVehicles)-1 do
-	{
-		_cur_cfg = _cfgVehicles select _i;
-		
-		if (isClass _cur_cfg) then
-		{
-			_classname = configName _cur_cfg;
-			_cur_cfg_type = getText(_cur_cfg >> "vehicleClass");
-			_picture = getText(_cur_cfg >> "picture");
-			
-			_isAssemble = (configName (configFile >> "CfgVehicles" >> _classname >> "assembleInfo")) != "";
-			
-			if (_cur_cfg_type == "Backpacks" && _picture != "" && !(_classname in _Assemble_Bag_Array) && (_isAssemble)) then {
-				if (_Debug == 1) then {diag_log format["Classname: %1 - Type: %2 - Pic: %3 - Cfg Dir: %4",_classname,_cur_cfg_type,_picture,_cur_cfg];};
-				_Assemble_Bag_Array set[count _Assemble_Bag_Array, _classname];
-			};
-		};
+	//Add items to crate
+	[] call _G_fnc_addToCrate;
+	
+	//Output debug timer if in use
+	if (_Debug == 1) then {
+		systemChat format ["G_Crate Time: %1 seconds", (time - _timer)];
 	};
-	{
-		_crate addBackPackCargoGlobal [_x, _Bagcount];
-	} foreach _Assemble_Bag_Array;
-};
-
-//Test bed
-if (_Test_bed == 1) then {
-
-};
-
-if (_Refresh > 0) then {
-	sleep _Refresh;
-}
-else
-{
-	breakOut "whileloop";
-};
+	
+	//If no refresh time, exit
+	if (!(_refreshTime > 0)) exitWith {};
+	
+	//Wait for refresh time
+	sleep _refreshTime;
 };
