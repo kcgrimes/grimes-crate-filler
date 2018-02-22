@@ -19,29 +19,30 @@ _refreshTime             = 600;  //Amount of time until crate empties/refills (s
 //In the following options, enter 0 to exclude the items from the script, and enter 1 to include them, thus spawning them in the crate. Scroll to their section for more specific information.
 //Default: All included except preset weapons (see _Base_Weapons), preset bags, assemblable bags, glasses/goggles, headgear, and uniforms
 _NATO_Weapons              = 1; //All weapons seen as BLUFOR weapons
-_OPFOR_Ind_Weapons         = 1; //All weapons seen as OPFOR and Independent weapons
-_Mixed_Weapons             = 1; //All weapons found in BLUFOR, OPFOR, and Independent arsenals
-_Base_Weapons              = 1; //All weapons selected above will only be base/stock variants with no attachments (see attachments parameter)
-_NATO_Launchers            = 1; //All rocket/missile launchers seen as BLUFOR launchers
-_OPFOR_Ind_Launchers       = 1; //All rocket/missile launchers seen as OPFOR and Independent launchers
+_OPFOR_Weapons             = 0; //All weapons seen as OPFOR weapons
+_Ind_Weapons               = 0; //All weapons seen as Independent weapons
+_Base_Weapons              = 0; //All weapons selected above will only be base/stock variants with no attachments (see attachments parameter)
+_NATO_Launchers            = 0; //All rocket/missile launchers seen as BLUFOR launchers
+_OPFOR_Launchers           = 0; //All rocket/missile launchers seen as OPFOR launchers
+_Ind_Launchers             = 0; //All rocket/missile launchers seen as Independent launchers
 _Weapon_Ammo               = 1; //All ammunition used by any weapons & launchers pulled from above parameters
-_Plantable_Explosives      = 1; //All plantable explosive devices (mines, charges, etc.) (not sorted by faction)
-_Grenade_Launcher_Ammo     = 1; //All grenade launcher ammo
-_Throwables                = 1; //All throwable munitions (smokes, grenades, chemlights)
-_Attachments               = 1; //All weapon attachments (not sorted by faction)
-_Items                     = 1; //All items (gadgets, kits, binocs, rangefinder, laser designator, anything else on player that is not a bag or weapon)
-_Headgear                  = 1; //All hats and helmets
-_Glasses_Goggles           = 1; //All glasses and goggles (currently unsupported by BIS)
-_BLUFOR_Uniforms           = 1; //All BLUFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
-_OPFOR_Uniforms            = 1; //All OPFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
-_Independent_Uniforms      = 1; //All Independent uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
-_Civilian_Uniforms         = 1; //All Civilian uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
-_Guerilla_Uniforms         = 1; //All Guerilla uniforms, which are hit and miss for who can wear them, but mostly follow the name's indication (too many exceptions to split)
-_Other_Uniforms            = 1; //All Other uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
-_Vests                     = 1; //All vests and chest rigs
-_Empty_Bags                = 1; //All empty, normal backpacks
-_Preset_Bags               = 1; //All preset bags (normal bags containing a preset of items, such as First Aid Kits and Explosives, which are already found elsewhere in the crate)
-_Assemble_Bags             = 1; //All backpacks that lack cargo but can be used or combined with another bag to assemble a static weapon
+_Plantable_Explosives      = 0; //All plantable explosive devices (mines, charges, etc.) (not sorted by faction)
+_Grenade_Launcher_Ammo     = 0; //All grenade launcher ammo
+_Throwables                = 0; //All throwable munitions (smokes, grenades, chemlights)
+_Attachments               = 0; //All weapon attachments (not sorted by faction)
+_Items                     = 0; //All items (gadgets, kits, binocs, rangefinder, laser designator, anything else on player that is not a bag or weapon)
+_Headgear                  = 0; //All hats and helmets
+_Glasses_Goggles           = 0; //All glasses and goggles (currently unsupported by BIS)
+_BLUFOR_Uniforms           = 0; //All BLUFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
+_OPFOR_Uniforms            = 0; //All OPFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
+_Independent_Uniforms      = 0; //All Independent uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
+_Civilian_Uniforms         = 0; //All Civilian uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
+_Guerilla_Uniforms         = 0; //All Guerilla uniforms, which are hit and miss for who can wear them, but mostly follow the name's indication (too many exceptions to split)
+_Other_Uniforms            = 0; //All Other uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
+_Vests                     = 0; //All vests and chest rigs
+_Empty_Bags                = 0; //All empty, normal backpacks
+_Preset_Bags               = 0; //All preset bags (normal bags containing a preset of items, such as First Aid Kits and Explosives, which are already found elsewhere in the crate)
+_Assemble_Bags             = 0; //All backpacks that lack cargo but can be used or combined with another bag to assemble a static weapon
 
 _Debug                     = 1; //Dump formatted return of all entities added to ammo box to .rpt
 //End Advanced Settings
@@ -201,41 +202,52 @@ _NATO_Weapon_Array = [];
 if (_NATO_Weapons == 1) then {
 	//CfgWeapons, primary or secondary, BLUFOR faction strings
 	//For custom - Treat item as base by default; Check if only real base weapons allowed, if so, if LinkedItems does not exist, then this is a base weapon (or not a weapon), return true
-	_NATO_Weapon_Array = [0, [1, 2], ["MX", "EBR", "LRR", "P07", "SMG_01", "Pistol_heavy_01"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
+	_NATO_Weapon_Array = [0, [1, 2], ["Mk20", "MX", "SDAR", "SPAR", "TRG2", "ACPC2", "P07", "PDW2000", "Pistol_heavy_01", "MMG_02", "SMG_01", "SMG_05", "DMR_02", "DMR_03", "DMR_06", "EBR", "LRR", "Pistol_Signal"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
 };
 
-//OPFOR/Independent Weapons
-_OPFOR_Ind_Weapon_Array = [];
-if (_OPFOR_Ind_Weapons == 1) then {
-	//CfgWeapons, primary or secondary, OPFOR/Ind faction strings
+//OPFOR Weapons
+_OPFOR_Weapon_Array = [];
+if (_OPFOR_Weapons == 1) then {
+	//CfgWeapons, primary or secondary, OPFOR faction strings
 	//For custom - Treat item as base by default; Check if only real base weapons allowed, if so, if LinkedItems does not exist, then this is a base weapon (or not a weapon), return true
-	_OPFOR_Ind_Weapon_Array = [0, [1, 2], ["Katiba", "GM6", "DMR", "Zafir", "PDW2000", "SMG_02", "rook40", "Pistol_heavy_02"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
+	_OPFOR_Weapon_Array = [0, [1, 2], ["ARX", "CTAR", "Katiba", "Mk20", "SDAR", "TRG2", "ACPC2", "Pistol_heavy_02", "rook40", "Zafir", "MMG_01", "SMG_02", "DMR_01", "DMR_04", "DMR_05", "DMR_06", "DMR_07", "GM6", "Pistol_Signal"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
 };
 
-//Mixed NATO/OPFOR weapons
-_Mixed_Weapon_Array = [];
-if (_Mixed_Weapons == 1) then {
-	//CfgWeapons, primary or secondary, Mixed faction strings
+//Independent Weapons
+_Ind_Weapon_Array = [];
+if (_Ind_Weapons == 1) then {
+	//CfgWeapons, primary or secondary, Independent faction strings
 	//For custom - Treat item as base by default; Check if only real base weapons allowed, if so, if LinkedItems does not exist, then this is a base weapon (or not a weapon), return true
-	_Mixed_Weapon_Array = [0, [1, 2], ["Mk20", "TRG21", "SDAR", "ACPC2"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
+	_Ind_Weapon_Array = [0, [1, 2], ["AK12", "AKM", "AKS", "Mk20", "SDAR", "TRG2", "ACPC2", "PDW2000", "Pistol_01", "LMG_03", "DMR_06", "EBR", "GM6", "Pistol_Signal"], "if (_Base_Weapons == 1) then {_customCheckReturn = !isClass (_cfgWeapons >> _className >> ""LinkedItems"");}else{_customCheckReturn=true;};"] call _G_fnc_createItemsArray;
 };
 
 //NATO Launchers
 _NATO_Launcher_Array = [];
 if (_NATO_Launchers == 1) then {
 	//CfgWeapons, launcher, BLUFOR faction strings
-	_NATO_Launcher_Array = [0, [4], ["launch_b", "launch_nlaw"]] call _G_fnc_createItemsArray;
+	_NATO_Launcher_Array = [0, [4], ["launch_b", "launch_nlaw", "launch_rpg32"]] call _G_fnc_createItemsArray;
 };
 
 //OPFOR Launchers
-_OPFOR_Ind_Launcher_Array = [];
-if (_OPFOR_Ind_Launchers == 1) then {
+_OPFOR_Launcher_Array = [];
+if (_OPFOR_Launchers == 1) then {
 	//CfgWeapons, launcher, OPFOR faction strings
-	_OPFOR_Ind_Launcher_Array = [0, [4], ["launch_o", "launch_i", "launch_rpg"]] call _G_fnc_createItemsArray;
+	_OPFOR_Launcher_Array = [0, [4], ["launch_o", "launch_rpg32"]] call _G_fnc_createItemsArray;
+};
+
+//Independent Launchers
+_Ind_Launcher_Array = [];
+if (_Ind_Launchers == 1) then {
+	//CfgWeapons, launcher, Independent faction strings
+	_Ind_Launcher_Array = [0, [4], ["launch_i", "launch_nlaw", "launch_rpg"]] call _G_fnc_createItemsArray;
 };
 
 //Make combined array of all weapons
-_allWeaponsArray = _NATO_Weapon_Array + _OPFOR_Ind_Weapon_Array + _Mixed_Weapon_Array + _NATO_Launcher_Array + _OPFOR_Ind_Launcher_Array;
+_allWeaponsArray_Dup = _NATO_Weapon_Array + _OPFOR_Weapon_Array + _Ind_Weapon_Array + _NATO_Launcher_Array + _OPFOR_Launcher_Array + _Ind_Launcher_Array;
+_allWeaponsArray = [];
+{
+	_allWeaponsArray pushBackUnique _x;
+} forEach _allWeaponsArray_Dup;
 
 //Weapon-specific ammo
 _allMagazinesArray = [];
