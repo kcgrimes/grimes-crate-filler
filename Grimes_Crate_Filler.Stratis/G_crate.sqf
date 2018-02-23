@@ -42,6 +42,7 @@ _Vests                     = 1; //All vests and chest rigs
 _Empty_Bags                = 1; //All empty, normal backpacks
 _Preset_Bags               = 1; //All preset bags (normal bags containing a preset of items, such as First Aid Kits and Explosives, which are already found elsewhere in the crate)
 _Assemble_Bags             = 1; //All backpacks that lack cargo but can be used or combined with another bag to assemble a static weapon
+_Exclusion_Array           = []; //Default empty. Array of classnames, as strings, of specifc items to be excluded. 
 
 _Debug                     = 1; //Dump formatted return of all entities added to ammo box to .rpt
 //End Advanced Settings
@@ -145,8 +146,8 @@ _G_fnc_createItemsArray = {
 				//No custom check, so pass
 				_customCheckReturn = true;
 			};
-			//Check item type, a picture path exists (is real), is not a private object, string limiters, not already in array, is base one way or another, and passes the custom check
-			if ((_type in _allowedType) && (getText (_curCfg >> "picture") != "") && (getNumber (_curCfg >> "scope") != 0) && (_stringIn) && !(_className in _itemsArrayReturn) && (_customCheckReturn)) then {
+			//Check item type, a picture path exists (is real), is not a private object, string limiters, not already in array, not in exclusion array, and passes the custom check
+			if ((_type in _allowedType) && (getText (_curCfg >> "picture") != "") && (getNumber (_curCfg >> "scope") != 0) && (_stringIn) && !(_className in _itemsArrayReturn)  && !(_className in _Exclusion_Array) && (_customCheckReturn)) then {
 				//Check if debug
 				if (_Debug == 1) then {
 					//For debug, output classname, type, and config path
