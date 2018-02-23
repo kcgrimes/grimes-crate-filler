@@ -37,7 +37,6 @@ _BLUFOR_Uniforms           = 1; //All BLUFOR uniforms (Note: Can only wear the u
 _OPFOR_Uniforms            = 1; //All OPFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
 _Independent_Uniforms      = 1; //All Independent uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
 _Civilian_Uniforms         = 1; //All Civilian uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
-_Guerilla_Uniforms         = 1; //All Guerilla uniforms, which are hit and miss for who can wear them, but mostly follow the name's indication (too many exceptions to split)
 _Other_Uniforms            = 1; //All Other uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)
 _Vests                     = 1; //All vests and chest rigs
 _Empty_Bags                = 1; //All empty, normal backpacks
@@ -334,21 +333,21 @@ if (_Glasses_Goggles == 1) then {
 _BLUFOR_Uniforms_Array = [];
 if (_BLUFOR_Uniforms == 1) then {
 	//CfgWeapons, item-type, BLUFOR faction string
-	_BLUFOR_Uniforms_Array = [0, [131072], ["U_B_"]] call _G_fnc_createItemsArray;
+	_BLUFOR_Uniforms_Array = [0, [131072], ["U_B_", "U_BG_"]] call _G_fnc_createItemsArray;
 };
 
 //OPFOR Uniforms
 _OPFOR_Uniforms_Array = [];
 if (_OPFOR_Uniforms == 1) then {
 	//CfgWeapons, item-type, OPFOR faction string
-	_OPFOR_Uniforms_Array = [0, [131072], ["U_O_"]] call _G_fnc_createItemsArray;
+	_OPFOR_Uniforms_Array = [0, [131072], ["U_O_", "U_OG_"]] call _G_fnc_createItemsArray;
 };
 
 //Independent Uniforms
 _Independent_Uniforms_Array = [];
 if (_Independent_Uniforms == 1) then {
 	//CfgWeapons, item-type, Ind faction string
-	_Independent_Uniforms_Array = [0, [131072], ["U_I_"]] call _G_fnc_createItemsArray;
+	_Independent_Uniforms_Array = [0, [131072], ["U_I_", "U_IG_"]] call _G_fnc_createItemsArray;
 };
 
 //Civilian Uniforms
@@ -356,13 +355,6 @@ _Civilian_Uniforms_Array = [];
 if (_Civilian_Uniforms == 1) then {
 	//CfgWeapons, item-type, Civilian faction string
 	_Civilian_Uniforms_Array = [0, [131072], ["U_C_"]] call _G_fnc_createItemsArray;
-};
-
-//Guerilla Uniforms
-_Guerilla_Uniforms_Array = [];
-if (_Guerilla_Uniforms == 1) then {
-	//CfgWeapons, item-type, Guerilla faction strings
-	_Guerilla_Uniforms_Array = [0, [131072], ["U_BG_", "U_OG_", "U_IG_"]] call _G_fnc_createItemsArray;
 };
 
 //Other Uniforms
@@ -373,7 +365,7 @@ if (_Other_Uniforms == 1) then {
 };
 
 //Make combined array of all hats, helmets, glasses/goggles, and uniforms
-_allUniformsArray = _Headgear_Array + _Glasses_Goggles_Array + _BLUFOR_Uniforms_Array + _OPFOR_Uniforms_Array + _Independent_Uniforms_Array + _Civilian_Uniforms_Array + _Guerilla_Uniforms_Array + _Other_Uniforms_Array;
+_allUniformsArray = _Headgear_Array + _Glasses_Goggles_Array + _BLUFOR_Uniforms_Array + _OPFOR_Uniforms_Array + _Independent_Uniforms_Array + _Civilian_Uniforms_Array + _Other_Uniforms_Array;
 
 //Vests
 _Vest_Array = [];
