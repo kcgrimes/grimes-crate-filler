@@ -319,8 +319,8 @@ _allItemsArray = _Attachment_Array + _Item_Array;
 //Helmets/hats
 _Headgear_Array = [];
 if (_Headgear == 1) then {
-	//CfgWeapons, item-type, "acc_" for headgear, not "V_" to avoid vests
-	_Headgear_Array = [0, [131072], ["H_"], "if (!([""V_"", _className] call BIS_fnc_inString)) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
+	//CfgWeapons, item-type, "H_" for headgear, not "V_" to avoid vests, not "muzzle_" to avoid some muzzle items
+	_Headgear_Array = [0, [131072], ["H_"], "if ((!([""V_"", _className] call BIS_fnc_inString)) && (!([""muzzle_"", _className] call BIS_fnc_inString))) then {_customCheckReturn = true;};"] call _G_fnc_createItemsArray;
 };
 
 //Glasses/goggles
