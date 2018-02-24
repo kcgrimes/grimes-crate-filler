@@ -31,14 +31,17 @@ null = [this] execVM "G_crate.sqf";
 
 Parameters:  
 Basic Settings:  
+```
 _weaponCount             = 10; //Quantity of each weapon/launcher  
 _ammoCount               = 50; //Quantity of each type of ammunition/explosive  
 _itemCount               = 10; //Quantity of each type of item (gadgets, attachments, etc.)  
 _uniformCount            = 3; //Quantity of each type of uniform/hat/helmet/glasses (suggested to keep small due to not being stackable)  
 _bagCount                = 3; //Quantity of each type of bag/vest (suggested to keep small due to not being stackable)  
 _refreshTime             = 600; //Amount of time (seconds) until crate empties/refills (0 is no refresh)  
+```
 
-Advanced Settings:  
+Advanced Settings: 
+```
 _NATO_Weapons            = 1; //All BLUFOR weapons  
 _OPFOR_Weapons           = 1; //All OPFOR weapons  
 _Ind_Weapons             = 1; //All Independent weapons  
@@ -65,6 +68,7 @@ _Preset_Bags             = 1; //All preset bags (normal bags containing a preset
 _Assemble_Bags           = 1; //All backpacks that lack cargo but can be used or combined with another bag to assemble a device or static weapon  
 _Exclusion_Array         = []; //Array of classnames, as strings, of specifc items to be excluded  
 _Debug                   = 1; //Dump formatted return of all entities added to ammo box to .rpt  
+```
 
 ## Documentation
 
