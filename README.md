@@ -31,54 +31,40 @@ nul = [this] execVM "G_crate.sqf";
 
 Parameters:  
 Basic Settings:  
-_Wpncount                = 10;   //Quantity of each weapon/launcher to be spawned  
-_Ammocount               = 50;   //Quantity of each type of ammunition/explosive to be spawned  
-_Itemcount               = 10;   //Quantity of each type of item (gadgets, attachments, etc)  
-_Clothingcount           = 3;    //Quantity of each type of uniform/hat/helmet/glasses (suggested to keep small due to not being stackable)  
-_Bagcount                = 3;    //Quantity of each type of bag/vest item (suggested to keep small due to not being stackable)  
-_Refresh                 = 600;  //Amount of time until crate empties/refills (seconds), 0 is no refresh  
+_weaponCount             = 10; //Quantity of each weapon/launcher  
+_ammoCount               = 50; //Quantity of each type of ammunition/explosive  
+_itemCount               = 10; //Quantity of each type of item (gadgets, attachments, etc.)  
+_uniformCount            = 3; //Quantity of each type of uniform/hat/helmet/glasses (suggested to keep small due to not being stackable)  
+_bagCount                = 3; //Quantity of each type of bag/vest (suggested to keep small due to not being stackable)  
+_refreshTime             = 600; //Amount of time (seconds) until crate empties/refills (0 is no refresh)  
 
 Advanced Settings:  
-_NATO_Weapons              = 1; //All weapons seen as BLUFOR weapons  
-_OPFOR_Ind_Weapons         = 1; //All weapons seen as OPFOR and Independent weapons  
-_Mixed_Weapons             = 1; //All weapons found in BLUFOR, OPFOR, and Independent arsenals  
-_Base_Weapons              = 1; //All weapons selected above will only be base/stock variants with no attachments (see attachments parameter)  
-_Weapon_Ammo               = 1; //All ammunition used by any weapons pulled from above parameters  
-_NATO_Launchers            = 1; //All rocket/missile launchers seen as BLUFOR launchers  
-_OPFOR_Ind_Launchers       = 1; //All rocket/missile launchers seen as OPFOR and Independent launchers  
-_NATO_Launcher_Ammo        = 1; //All ammunition used by BLUFOR rocket/missile launchers  
-_OPFOR_Ind_Launcher_Ammo   = 1; //All ammunition used by OPFOR and Independent rocket/missile launchers  
-_Plantable_Explosives      = 1; //All plantable explosive devices (mines, charges, etc.) (not sorted by faction)  
-_Grenade_Launcher_Ammo     = 1; //All grenade launcher ammo  
-_Throwables                = 1; //All throwable munitions (smokes, grenades, chemlights)  
-_Attachments               = 1; //All weapon attachments (not sorted by faction)  
-_Items                     = 1; //All items (gadgets, kits, binocs, rangefinder, laser designator, anything else on player that is not a bag or weapon)  
-_Headgear                  = 1; //All hats and helmets  
-_Glasses_Goggles           = 1; //All glasses and goggles (currently unsupported by BIS)  
-_BLUFOR_Uniforms           = 1; //All BLUFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
-_OPFOR_Uniforms            = 1; //All OPFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
-_Independent_Uniforms      = 1; //All Independent uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
-_Civilian_Uniforms         = 1; //All Civilian uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
-_Guerilla_Uniforms         = 1; //All Guerilla uniforms, which are hit and miss for who can wear them, but mostly follow the name's indication (too many exceptions to split)  
-_Other_Uniforms            = 1; //All Other uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
-_Vests                     = 1; //All vests and chest rigs  
-_Bags                      = 1; //All empty, normal backpacks  
-_Preset_Bags               = 1; //All preset bags (normal bags containing a preset of items, such as First Aid Kits and Explosives, which are already found elsewhere in the crate)  
-_Assemble_Bags             = 1; //All backpacks that lack cargo but can be used or combined with another bag to assemble a static weapon
-
-Notes/Tips:
-* To keep an entity from spawning, simply comment it out by adding // at the beginning of the line (comment out)
-* Read the extra comments if you are confused about something, or contact me on the forums or via e-mail
-* Unfortunately as of the release of this script the crate sorting system in A3 isn't so great. Here's what you need to know.
-	* All - Displays all items spawned into the crate
-	* Weapons - Only weapons, launchers, and all bags (not vests)
-	* Magazines - Only magazines, throwables, launchables, plantables, and all bags (not vests)
-	* Items - Only attachments, gadgets, items, kits, hat/helmets, uniforms, vests, and all bags
-	* This is why I suggest you keep the bag/uniform/vest/hat count low, as it is very cluttery. Sorry!
-* Uniforms and vests have a commented number to the right of the classname. This indicates their capacity. Capacity for all bags was said to me 1 weapon, 13 magazines.
-* Players can only wear uniforms of their faction
-* Although it is possible to spawn everything into the crate, it is not recommended in Multiplayer due to lag. However, default settings and under will only cause an extra second of loading.
-* All of the recommended limitations can be experimented with, of course. Make your mission as good as it can be!
+_NATO_Weapons            = 1; //All BLUFOR weapons  
+_OPFOR_Weapons           = 1; //All OPFOR weapons  
+_Ind_Weapons             = 1; //All Independent weapons  
+_Base_Weapons            = 1; //All weapons selected above will only be base/stock variants with no attachments (see attachments parameter)  
+_NATO_Launchers          = 1; //All BLUFOR rocket/missile launchers  
+_OPFOR_Launchers         = 1; //All OPFOR rocket/missile launchers  
+_Ind_Launchers           = 1; //All Independent rocket/missile launchers  
+_Weapon_Ammo             = 1; //All ammunition used by any weapons or launchers pulled from above parameters  
+_Plantable_Explosives    = 1; //All plantable explosive devices (mines, charges, etc.) (not sorted by faction)  
+_Grenade_Launcher_Ammo   = 1; //All grenade launcher ammo  
+_Throwables              = 1; //All throwable munitions (smokes, grenades, chemlights, etc.)  
+_Attachments             = 1; //All weapon attachments (not sorted by faction)  
+_Items                   = 1; //All items (gadgets, kits, binoculars, rangefinder, laser designator, anything else on player that is not a bag or weapon)  
+_Headgear                = 1; //All hats and helmets  
+_Glasses_Goggles         = 1; //All glasses and goggles  
+_BLUFOR_Uniforms         = 1; //All BLUFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
+_OPFOR_Uniforms          = 1; //All OPFOR uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
+_Independent_Uniforms    = 1; //All Independent uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
+_Civilian_Uniforms       = 1; //All Civilian uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
+_Other_Uniforms          = 1; //All Other uniforms (Note: Can only wear the uniforms of the player's faction, though Civilian can wear most all uniforms)  
+_Vests                   = 1; //All vests and chest rigs  
+_Empty_Bags              = 1; //All empty, normal backpacks  
+_Preset_Bags             = 1; //All preset bags (normal bags containing a preset of items, such as First Aid Kits and Explosives)  
+_Assemble_Bags           = 1; //All backpacks that lack cargo but can be used or combined with another bag to assemble a device or static weapon  
+_Exclusion_Array         = []; //Array of classnames, as strings, of specifc items to be excluded  
+_Debug                   = 1; //Dump formatted return of all entities added to ammo box to .rpt  
 
 ## Documentation
 
