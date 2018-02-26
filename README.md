@@ -19,6 +19,7 @@ BI Forums Topic: https://forums.bohemia.net/forums/topic/161393-grimes-crate-fil
 At this time, there is no “installer” for the script, and it is instead a simple series of actions and file moves.  
 
 1. Obtain the script files
+	1. Armaholic: http://www.armaholic.com/page.php?id=24116
 	1. github: https://github.com/kcgrimes/grimes-crate-filler
 	1. Steam Workshop: http://steamcommunity.com/sharedfiles/filedetails/?id=1311994960
 2. Simply copy the file "G_Occupation.sqf" into your mission directory
