@@ -22,7 +22,7 @@ At this time, there is no “installer” for the script, and it is instead a si
 	1. Armaholic: http://www.armaholic.com/page.php?id=24116
 	1. github: https://github.com/kcgrimes/grimes-crate-filler
 	1. Steam Workshop: http://steamcommunity.com/sharedfiles/filedetails/?id=1311994960
-2. Simply copy the file "G_Occupation.sqf" into your mission directory
+2. Simply copy the file "G_crate.sqf" into your mission directory
 3. In the ArmA 3 editor, place an ammo crate found in the Empty -> Supplies -> Ammo section
 4. In the crate's Init field, type the following command:
 
