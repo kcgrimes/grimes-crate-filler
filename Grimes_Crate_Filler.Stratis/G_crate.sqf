@@ -1,7 +1,7 @@
 /*
 Author: KC Grimes
 Script: Grimes Crate Filler
-Version: V2.1
+Version: V2.11
 */
 
 if (!isServer) exitWith {};
