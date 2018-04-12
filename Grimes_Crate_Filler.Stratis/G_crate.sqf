@@ -1,7 +1,7 @@
 /*
 Author: KC Grimes
 Script: Grimes Crate Filler
-Version: V2.11
+Version: V2.12
 */
 
 if (!isServer) exitWith {};
@@ -225,7 +225,7 @@ if (_Ind_Weapons == 1) then {
 _NATO_Launcher_Array = [];
 if (_NATO_Launchers == 1) then {
 	//CfgWeapons, launcher, BLUFOR faction strings
-	_NATO_Launcher_Array = [0, [4], ["launch_b", "launch_nlaw", "launch_rpg32"]] call _G_fnc_createItemsArray;
+	_NATO_Launcher_Array = [0, [4], ["launch_b", "launch_nlaw", "launch_rpg32", "launch_MRAWS"]] call _G_fnc_createItemsArray;
 };
 
 //OPFOR Launchers
@@ -239,7 +239,7 @@ if (_OPFOR_Launchers == 1) then {
 _Ind_Launcher_Array = [];
 if (_Ind_Launchers == 1) then {
 	//CfgWeapons, launcher, Independent faction strings
-	_Ind_Launcher_Array = [0, [4], ["launch_i", "launch_nlaw", "launch_rpg"]] call _G_fnc_createItemsArray;
+	_Ind_Launcher_Array = [0, [4], ["launch_i", "launch_nlaw", "launch_rpg", "launch_MRAWS"]] call _G_fnc_createItemsArray;
 };
 
 //Make combined array of all weapons, which has duplicates
